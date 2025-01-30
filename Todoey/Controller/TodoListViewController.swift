@@ -24,9 +24,9 @@ class TodoListViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(dataFilePath)
+        //print(dataFilePath)
         
-        //loadItems()
+        loadItems()
         
     }
     
@@ -106,7 +106,7 @@ class TodoListViewController: UITableViewController {
             /// Initializing a core Data
             // We can used both ways to create a context
             // let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-            // let context = AppDelegate().persistentContainer.viewContext
+            //let context = AppDelegate().persistentContainer.viewContext
             let newItem = Item(context: self.context)
             
             newItem.title = textFieldTo.text!
@@ -134,7 +134,6 @@ class TodoListViewController: UITableViewController {
     //MARK: - Model manipulation methods
     
     func saveItems(){
-        
         do{
             try context.save()
         } catch {
@@ -142,15 +141,13 @@ class TodoListViewController: UITableViewController {
         }
     }
     
-//    func loadItems(){
-//        if let data = try? Data(contentsOf: dataFilePath!){
-//            let decoder = PropertyListDecoder()
-//            do{
-//                self.itemArray = try decoder.decode([Item].self, from: data)
-//            } catch {
-//                print("Error Decoding Data from an array, \(error)")
-//            }
-//        }
-//    }
+    func loadItems(){
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        do{
+            itemArray = try context.fetch(request)
+        } catch {
+            print ("Unexpected error while fetching data from Context: \(error).")
+        }
+    }
 }
 
