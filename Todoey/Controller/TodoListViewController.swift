@@ -142,6 +142,7 @@ class TodoListViewController: UITableViewController {
     }
     
     func loadItems(){
+        /// Below are using for the read the Data from Core data to Context and show on controller.
         let request: NSFetchRequest<Item> = Item.fetchRequest()
         do{
             itemArray = try context.fetch(request)
