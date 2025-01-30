@@ -64,6 +64,10 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         
+        /// U in CRUD operation define as below
+        itemArray[indexPath.row].setValue("Ten", forKey: "One")
+        
+        
         /// We can use below one single line instead of if  else using not ! operator.
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
 ///        if itemArray[indexPath.row].Done == false{
