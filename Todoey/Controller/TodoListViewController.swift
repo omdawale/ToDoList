@@ -1,11 +1,3 @@
-//
-//  ViewController.swift
-//  Todoey
-//
-//  Created by Philipp Muellauer on 02/12/2019.
-//  Copyright © 2019 App Brewery. All rights reserved.
-//
-
 import UIKit
 import CoreData
 
@@ -14,18 +6,16 @@ class TodoListViewController: UITableViewController {
     var itemArray = [Item]()
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
-    /// Creating an defaults constant for to retrive a small and convenient data using UserDefaults
+    /// **Creating an defaults constant for to retrive a small and convenient data using UserDefaults
     // let defaults = UserDefaults.standard
     
-    /// Initializing a context
+    /// **Initializing a context
     // We can used both ways to create a context.
     // let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     let context = AppDelegate().persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        //print(dataFilePath)
-        
         loadItems()
         
     }
@@ -44,7 +34,7 @@ class TodoListViewController: UITableViewController {
         
         cell.textLabel?.text = item.title
         
-        /// We can use Ternary Operator instead of If else
+        /// **We can use Ternary Operator instead of If else
         /// Ternary Operator --> value = condition ? valueifTrue : valueifFalse
         
         cell.accessoryType = item.done == true ? .checkmark : .none
@@ -60,27 +50,34 @@ class TodoListViewController: UITableViewController {
     
     //MARK: - Select a row and mark as check tick mark
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        //print(itemArray[indexPath.row])
+        
         tableView.deselectRow(at: indexPath, animated: true)
         //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         
-        /// U in CRUD operation define as below
-        itemArray[indexPath.row].setValue("Ten", forKey: "One")
+        /// **U in CRUD operation define as below
+        // itemArray[indexPath.row].setValue("Ten", forKey: "One")
         
+        /// **D in CRUD operation define as below.
+        /// Remember the order always same First delete from context then from the delete.
+       
+        // below line deonotes the removing a row in context.
+        context.delete(itemArray[indexPath.row])
         
-        /// We can use below one single line instead of if  else using not ! operator.
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        // below line denotes the removing a row in main table.
+        itemArray.remove(at: indexPath.row)
+        
+        /// **We can use below one single line instead of if  else using not ! operator.
+        // itemArray[indexPath.row].done = !itemArray[indexPath.row].done
 ///        if itemArray[indexPath.row].Done == false{
 ///            itemArray[indexPath.row].Done = true
 ///        } else {
 ///            itemArray[indexPath.row].Done = false
 ///        }
 
-        /// Creating a constant and initializing a property list encoder.
+        /// ** Creating a constant and initializing a property list encoder.
         /// It is used to encode Swift data types (like structs, classes, or collections) into Property List (plist) format.
         self.saveItems()
-        
-        tableView.reloadData()
+        tableView.deselectRow(at: indexPath, animated: true)
         
 ///        if let cell = tableView.cellForRow(at: indexPath) {
 ///             if cell.accessoryType == .checkmark {
@@ -95,10 +92,10 @@ class TodoListViewController: UITableViewController {
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         var textFieldTo = UITextField()
         
-        /// Creating an alert when users  pressed the add button user get an small alert pop up to add items in the list. //Add a new item to your list//
+        /// **Creating an alert when users  pressed the add button user get an small alert pop up to add items in the list. //Add a new item to your list
         let alert = UIAlertController(title: "To Do List", message: "", preferredStyle: .alert)
         
-        /// Creating a textfield in alert popup
+        /// **Creating a textfield in alert popup
         alert.addTextField { (alertTextField) in
             ///Creating a place holder in text field
             alertTextField.placeholder = "Add a new item"
@@ -107,31 +104,32 @@ class TodoListViewController: UITableViewController {
         
         let action = UIAlertAction(title: "Add New Item in List", style: .default) { (action) in
            
+            /// **C in CRUD operation define as below
             /// Initializing a core Data
             // We can used both ways to create a context
             // let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-            //let context = AppDelegate().persistentContainer.viewContext
+            // let context = AppDelegate().persistentContainer.viewContext
             let newItem = Item(context: self.context)
             
             newItem.title = textFieldTo.text!
             newItem.done = false
             self.itemArray.append(newItem)
            
-            /// Creating a constant and initializing a property list encoder.
+            /// **Creating a constant and initializing a property list encoder.
             /// It is used to encode Swift data types (like structs, classes, or collections) into Property List (plist) format.
             self.saveItems()
 
             
             //self.defaults.set(self.itemArray, forKey: "ToDoListArray")
             
-            /// Reloading  a data which is newlly added in the list. Ii will show on table view
+            /// **Reloading  a data which is newlly added in the list. Ii will show on table view
             self.tableView.reloadData()
         
         }
         
         alert.addAction(action)
         
-        /// Show or preview the alert popop up
+        /// **Show or preview the alert popop up
         present(alert, animated: true, completion: nil)
     }
     
@@ -143,9 +141,11 @@ class TodoListViewController: UITableViewController {
         } catch {
             print("Error saving context\(error)")
         }
+        self.tableView.reloadData()
     }
     
     func loadItems(){
+        /// **R in CRUD operation define as below
         /// Below are using for the read the Data from Core data to Context and show on controller.
         let request: NSFetchRequest<Item> = Item.fetchRequest()
         do{
