@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     
@@ -14,36 +15,18 @@ class TodoListViewController: UITableViewController {
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     /// Creating an defaults constant for to retrive a small and convenient data using UserDefaults
-    //let defaults = UserDefaults.standard
+    // let defaults = UserDefaults.standard
+    
+    /// Initializing a context
+    // We can used both ways to create a context.
+    // let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    let context = AppDelegate().persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        /// Below are initialize for testing purpose.
-//        let newItem1 = Item()
-//        newItem1.title = "One"
-//        itemArray.append(newItem1)
-//        
-//        let newItem2 = Item()
-//        newItem2.title = "Two"
-//        itemArray.append(newItem2)
-//        
-//        let newItem3 = Item()
-//        newItem3.title = "Three"
-//        itemArray.append(newItem3)
-//        
-//        let newItem4 = Item()
-//        newItem4.title = "Four"
-//        itemArray.append(newItem4)
-    
+        print(dataFilePath)
         
-        ///This attempts to retrieve an array stored in UserDefaults with the key.
-        ///The method array(forKey:) returns an optional Array<Any>? because the value might not exist or might not be an array.
-        //        if let item = defaults.array(forKey: "ToDoListArray") as? [Item]{
-        //            itemArray = item
-        //        }
-        
-        loadItems()
+        //loadItems()
         
     }
     
@@ -64,7 +47,7 @@ class TodoListViewController: UITableViewController {
         /// We can use Ternary Operator instead of If else
         /// Ternary Operator --> value = condition ? valueifTrue : valueifFalse
         
-        cell.accessoryType = item.Done == true ? .checkmark : .none
+        cell.accessoryType = item.done == true ? .checkmark : .none
         
 ///        if item.Done == true {
 ///            cell.accessoryType = .checkmark
@@ -82,7 +65,7 @@ class TodoListViewController: UITableViewController {
         //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         
         /// We can use below one single line instead of if  else using not ! operator.
-        itemArray[indexPath.row].Done = !itemArray[indexPath.row].Done
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
 ///        if itemArray[indexPath.row].Done == false{
 ///            itemArray[indexPath.row].Done = true
 ///        } else {
@@ -120,9 +103,14 @@ class TodoListViewController: UITableViewController {
         
         let action = UIAlertAction(title: "Add New Item in List", style: .default) { (action) in
            
-            /// What will happen once the user clicks the add Item button on our alert.
-            let newItem = Item()
-            newItem.title = textFieldTo.text! 
+            /// Initializing a core Data
+            // We can used both ways to create a context
+            // let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+            // let context = AppDelegate().persistentContainer.viewContext
+            let newItem = Item(context: self.context)
+            
+            newItem.title = textFieldTo.text!
+            newItem.done = false
             self.itemArray.append(newItem)
            
             /// Creating a constant and initializing a property list encoder.
@@ -146,24 +134,23 @@ class TodoListViewController: UITableViewController {
     //MARK: - Model manipulation methods
     
     func saveItems(){
-        let encoder = PropertyListEncoder()
+        
         do{
-            let data = try encoder.encode(self.itemArray)
-            try data.write(to: self.dataFilePath!)
+            try context.save()
         } catch {
-             print("Error Encoding Data in an array, \(error)")
+            print("Error saving context\(error)")
         }
     }
     
-    func loadItems(){
-        if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
-            do{
-                self.itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error Decoding Data from an array, \(error)")
-            }
-        }
-    }
+//    func loadItems(){
+//        if let data = try? Data(contentsOf: dataFilePath!){
+//            let decoder = PropertyListDecoder()
+//            do{
+//                self.itemArray = try decoder.decode([Item].self, from: data)
+//            } catch {
+//                print("Error Decoding Data from an array, \(error)")
+//            }
+//        }
+//    }
 }
 
