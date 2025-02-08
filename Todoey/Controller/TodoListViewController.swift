@@ -1,7 +1,9 @@
 import UIKit
 import CoreData
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: UITableViewController{
+    
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var itemArray = [Item]()
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
@@ -16,8 +18,8 @@ class TodoListViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadItems()
-        
+        searchBar.delegate = self
+        loadItems( )
     }
     
     //MARK: - Count a number of items in the list or List of Araay
@@ -67,7 +69,7 @@ class TodoListViewController: UITableViewController {
         itemArray.remove(at: indexPath.row)
         
         /// **We can use below one single line instead of if  else using not ! operator.
-        // itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
 ///        if itemArray[indexPath.row].Done == false{
 ///            itemArray[indexPath.row].Done = true
 ///        } else {
@@ -118,13 +120,11 @@ class TodoListViewController: UITableViewController {
             /// **Creating a constant and initializing a property list encoder.
             /// It is used to encode Swift data types (like structs, classes, or collections) into Property List (plist) format.
             self.saveItems()
-
             
             //self.defaults.set(self.itemArray, forKey: "ToDoListArray")
             
             /// **Reloading  a data which is newlly added in the list. Ii will show on table view
             self.tableView.reloadData()
-        
         }
         
         alert.addAction(action)
@@ -144,15 +144,61 @@ class TodoListViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
-    func loadItems(){
+    /// ***In below method we use external & internal parameter name also provide a default value after = sign.
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()){
         /// **R in CRUD operation define as below
         /// Below are using for the read the Data from Core data to Context and show on controller.
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        /// let request: NSFetchRequest<Item> = Item.fetchRequest()
         do{
             itemArray = try context.fetch(request)
         } catch {
             print ("Unexpected error while fetching data from Context: \(error).")
         }
+        self.tableView.reloadData()
     }
 }
+
+//MARK: - Extension of TodoListController.
+
+extension TodoListViewController: UISearchBarDelegate {
+   
+    /// ** Using a delegate method for finding a when search bar search button is pressed.
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+        /// ** Below is like a SQL query to fetch the data on the basis of where condintion in SQL
+        ///  ** in Swift we use NSPredicate(format:"title CONTAINS %@", searchBar.text)
+        ///  here %@ use as where cndition. object’s attribute name is equal to value passed in
+        // Addiding an quary to the request.
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        /// *** After getting a data for sorting we used NSSortDescriptor
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        request.sortDescriptors = [sortDescriptor]
+        /// *** OR
+        /// we can use as below as well
+        // request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        /// ***We can use below Method or create a do catch block manually.
+        loadItems(with: request)
+    }
+    
+    /// ** Below delegate method is triggerred whenever the user type in search bar and show the result
+    /// if user has cleared the search bar then it will again back to original view.
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0{
+            loadItems()
+            
+            ///** It (resignFirstResponder()) will use for the came back to original view controller, that is dismissed the keyboard and pointer in the search bar.
+            ///***Used with Queue Async call. It will run in background and UI not showing as busy.
+
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+}
+
+
 
