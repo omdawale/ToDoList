@@ -6,6 +6,12 @@ class TodoListViewController: UITableViewController{
     @IBOutlet weak var searchBar: UISearchBar!
     
     var itemArray = [Item]()
+    var selectedCategory: Category? {
+        didSet {
+            loadItems()
+        }
+    }
+    
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     /// **Creating an defaults constant for to retrive a small and convenient data using UserDefaults
@@ -13,13 +19,15 @@ class TodoListViewController: UITableViewController{
     
     /// **Initializing a context
     // We can used both ways to create a context.
-    // let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    let context = AppDelegate().persistentContainer.viewContext
+     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    // let context = AppDelegate().persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
-        loadItems( )
+        
+        /// *** Removing cause add selectedCategory
+        //loadItems()
     }
     
     //MARK: - Count a number of items in the list or List of Araay
@@ -115,12 +123,14 @@ class TodoListViewController: UITableViewController{
             
             newItem.title = textFieldTo.text!
             newItem.done = false
+            // Adding Parent Category
+            newItem.parentCategory = self.selectedCategory
             self.itemArray.append(newItem)
            
             /// **Creating a constant and initializing a property list encoder.
             /// It is used to encode Swift data types (like structs, classes, or collections) into Property List (plist) format.
             self.saveItems()
-            
+        
             //self.defaults.set(self.itemArray, forKey: "ToDoListArray")
             
             /// **Reloading  a data which is newlly added in the list. Ii will show on table view
@@ -145,7 +155,16 @@ class TodoListViewController: UITableViewController{
     }
     
     /// ***In below method we use external & internal parameter name also provide a default value after = sign.
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()){
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? =  nil){
+        ///** Creating a predicate which is use for when we click on category it will show us the matching or that category related items
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let additionalPredicate = predicate{
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        
         /// **R in CRUD operation define as below
         /// Below are using for the read the Data from Core data to Context and show on controller.
         /// let request: NSFetchRequest<Item> = Item.fetchRequest()
@@ -170,7 +189,7 @@ extension TodoListViewController: UISearchBarDelegate {
         ///  ** in Swift we use NSPredicate(format:"title CONTAINS %@", searchBar.text)
         ///  here %@ use as where cndition. object’s attribute name is equal to value passed in
         // Addiding an quary to the request.
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
         /// *** After getting a data for sorting we used NSSortDescriptor
         let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
@@ -180,7 +199,7 @@ extension TodoListViewController: UISearchBarDelegate {
         // request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
         
         /// ***We can use below Method or create a do catch block manually.
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
     }
     
     /// ** Below delegate method is triggerred whenever the user type in search bar and show the result
