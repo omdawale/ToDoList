@@ -1,10 +1,10 @@
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewControllerTableViewController: UITableViewController {
-    
-    var itemCategory = [Category]()
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    ///** Iniitialzating Realm in Controller
+    let realm = try! Realm()
+    var itemCategory: Results<Category>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -14,14 +14,13 @@ class CategoryViewControllerTableViewController: UITableViewController {
     //MARK: - TableView Datasource method
     ///**  Count a number of items in the list or List of Array
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemCategory.count
+        return itemCategory?.count ?? 1
     }
     
     ///** Show an list or List of Array items on the table view.
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        let item = itemCategory[indexPath.row]
-        cell.textLabel?.text = item.name
+        cell.textLabel?.text = itemCategory?[indexPath.row].name ?? "No Categories Added Yet"
         
         return cell
     }
@@ -36,10 +35,10 @@ class CategoryViewControllerTableViewController: UITableViewController {
         let destinationVC = segue.destination as! TodoListViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = itemCategory[indexPath.row]
+            destinationVC.selectedCategory = itemCategory?[indexPath.row]
         }
     }
-
+    
     //MARK: - Add New Categories
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         var textFieldTo = UITextField()
@@ -54,11 +53,10 @@ class CategoryViewControllerTableViewController: UITableViewController {
         }
         
         let action = UIAlertAction(title: "Add", style: .default) { (action) in
-            ///** CURD -- C -- Create Operations
-            let newCategory = Category(context: self.context)
+            ///** CURD -- C -- Create Operations in Realm, Realm we dont need to append its simply autoupdate/append.(Result<Category>!)
+            let newCategory = Category()
             newCategory.name = textFieldTo.text!
-            self.itemCategory.append(newCategory)
-            self.saveItems()
+            self.saveItems(category: newCategory)
         }
         
         alert.addAction(action)
@@ -67,35 +65,20 @@ class CategoryViewControllerTableViewController: UITableViewController {
     }
     
     //MARK: - Data Manipulation method
-    func saveItems() {
+    func saveItems(category: Category) {
         do{
-            try context.save()
+            try realm.write{
+                realm.add(category)
+            }
         } catch {
             print("Error saving context\(error)")
         }
         self.tableView.reloadData()
     }
     
-    func loadItems(with request: NSFetchRequest<Category> = Category.fetchRequest()){
-        // CURD - R -- Read Operations
-        do{
-            itemCategory = try context.fetch(request)
-        } catch {
-            print("Error\(error)")
-        }
-        tableView.reloadData()
+    func loadItems(){
+        // CURD - R -- Read Operations in Realm
+        itemCategory = realm.objects(Category.self)
+        self.tableView.reloadData()
     }
 }
-
-
-//tableView.deselectRow(at: indexPath, animated: true)
-//
-//// below line deonotes the removing a row in context.
-//context.delete(itemCategory[indexPath.row])
-//
-//// below line denotes the removing a row in main table.
-//itemCategory.remove(at: indexPath.row)
-//
-//self.saveItems()
-//tableView.deselectRow(at: indexPath, animated: true)
-

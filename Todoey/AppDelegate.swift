@@ -8,21 +8,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-        // print(NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).last! as String)
-        // To check Realm File Path
+
         
         print(Realm.Configuration.defaultConfiguration.fileURL)
-    
-        let data = Data()
-        data.name = "Omkar"
-        data.age = 25
-    
+
         do {
             let realm = try Realm()
             // Realm CURD - C Operation.
-            try realm.write{realm.add(data)
-            }
         } catch {
             print("Error creating Realm instance: \(error)")
         }
