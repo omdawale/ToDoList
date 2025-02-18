@@ -13,12 +13,10 @@ class TodoListViewController: UITableViewController{
         }
     }
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
-        
+
         /// *** Removing cause add selectedCategory
         loadItems()
     }
@@ -92,21 +90,15 @@ class TodoListViewController: UITableViewController{
                     print("Error in saving new Items, \(error)")
                 }
             }
-            
             self.tableView.reloadData()
         }
         
         alert.addAction(action)
-        
         /// **Show or preview the alert popop up
         present(alert, animated: true, completion: nil)
     }
     
     //MARK: - Model manipulation methods
-    
-//
-    
-    /// ***In below method we use external & internal parameter name also provide a default value after = sign.
     func loadItems(){
         /// **R in CRUD operation define as below
         todoItems = selectedCategory?.items.sorted(byKeyPath: "Title", ascending: true)
@@ -120,24 +112,19 @@ extension TodoListViewController: UISearchBarDelegate {
    
     /// ** Using a delegate method for finding a when search bar search button is pressed.
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        
-        /// ** Query in Realm
-        /// ** Take a List Item and  filter them.
+        /// ** Query in Realm -- Take a List Item and  filter them.
         todoItems = todoItems?.filter("Title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true )
         self.tableView.reloadData()
-        
     }
  
     /// ** Below delegate method is triggerred whenever the user type in search bar and show the result
     /// if user has cleared the search bar then it will again back to original view.
-    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0{
             loadItems()
             
             ///** It (resignFirstResponder()) will use for the came back to original view controller, that is dismissed the keyboard and pointer in the search bar.
             ///***Used with Queue Async call. It will run in background and UI not showing as busy.
-
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()
             }
