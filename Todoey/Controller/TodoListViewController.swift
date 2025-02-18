@@ -1,7 +1,7 @@
 import UIKit
 import RealmSwift
 
-class TodoListViewController: UITableViewController, UISearchBarDelegate{
+class TodoListViewController: UITableViewController{
     
     @IBOutlet weak var searchBar: UISearchBar!
     var todoItems: Results<Item>?
@@ -85,6 +85,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
                     try self.realm.write {
                         let newItem = Item()
                         newItem.Title = textFieldTo.text!
+                        newItem.dateCreated = Date()
                         currentCategory.items.append(newItem )
                     }
                 } catch {
@@ -115,43 +116,32 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
 
 // MARK: - Extension of TodoListController.
 
-//extension TodoListViewController: UISearchBarDelegate {
-//   
-//    /// ** Using a delegate method for finding a when search bar search button is pressed.
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        let request: NSFetchRequest<Item> = Item.fetchRequest()
-//        
-//        /// ** Below is like a SQL query to fetch the data on the basis of where condintion in SQL
-//        ///  ** in Swift we use NSPredicate(format:"title CONTAINS %@", searchBar.text)
-//        ///  here %@ use as where cndition. object’s attribute name is equal to value passed in
-//        // Addiding an quary to the request.
-//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-//        
-//        /// *** After getting a data for sorting we used NSSortDescriptor
-//        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
-//        request.sortDescriptors = [sortDescriptor]
-//        /// *** OR
-//        /// we can use as below as well
-//        // request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-//        
-//        /// ***We can use below Method or create a do catch block manually.
-//        loadItems(with: request, predicate: predicate)
-//    }
-//    
-//    /// ** Below delegate method is triggerred whenever the user type in search bar and show the result
-//    /// if user has cleared the search bar then it will again back to original view.
-//    
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        if searchBar.text?.count == 0{
-//            loadItems()
-//            
-//            ///** It (resignFirstResponder()) will use for the came back to original view controller, that is dismissed the keyboard and pointer in the search bar.
-//            ///***Used with Queue Async call. It will run in background and UI not showing as busy.
-//
-//            DispatchQueue.main.async {
-//                searchBar.resignFirstResponder()
-//            }
-//        }
-//    }
-//}
-//
+extension TodoListViewController: UISearchBarDelegate {
+   
+    /// ** Using a delegate method for finding a when search bar search button is pressed.
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        /// ** Query in Realm
+        /// ** Take a List Item and  filter them.
+        todoItems = todoItems?.filter("Title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true )
+        self.tableView.reloadData()
+        
+    }
+ 
+    /// ** Below delegate method is triggerred whenever the user type in search bar and show the result
+    /// if user has cleared the search bar then it will again back to original view.
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0{
+            loadItems()
+            
+            ///** It (resignFirstResponder()) will use for the came back to original view controller, that is dismissed the keyboard and pointer in the search bar.
+            ///***Used with Queue Async call. It will run in background and UI not showing as busy.
+
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+}
+
