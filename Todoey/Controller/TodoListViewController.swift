@@ -35,41 +35,32 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate{
         
         if let item = todoItems?[indexPath.row]{
             cell.textLabel?.text = item.Title
-            cell.accessoryType = item.done == true ? .checkmark : .none
+            cell.accessoryType = item.done ? .checkmark : .none
         } else {
             cell.textLabel?.text = "No items to show"
         }
-
-         
         return cell
     }
     
     //MARK: - Select a row and mark as check tick mark
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        tableView.deselectRow(at: indexPath, animated: true)
         //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         
-        /// **U in CRUD operation define as below
-//         todoItems[indexPath.row].setValue("Ten", forKey: "One")
-//        
-//        /// **D in CRUD operation define as below.
-//        /// Remember the order always same First delete from context then from the delete.
-//       
-//        // below line deonotes the removing a row in context.
-//        context.delete(itemArray[indexPath.row])
-//        
-//        // below line denotes the removing a row in main table.
-//        todoItems.remove(at: indexPath.row)
-//        
-//        /// **We can use below one single line instead of if  else using not ! operator.
-//         todoItems[indexPath.row].done = !todoItems[indexPath.row].done
-
-        /// ** Creating a constant and initializing a property list encoder.
-        /// It is used to encode Swift data types (like structs, classes, or collections) into Property List (plist) format.
-        //self.saveItems()
+        /// **U in CRUD operation in Realm define as below
+        if let item = todoItems?[indexPath.row]{
+            //print(item.done)
+            do{
+                try realm.write(){
+                    /// ** CURD - D Operation in Realm
+                    //realm.delete(item)
+                    item.done = !item.done
+                }
+            } catch {
+                print("Error saving data: \(error)")
+            }
+        }
+        self.tableView.reloadData()
         tableView.deselectRow(at: indexPath, animated: true)
-
     }
     
     //MARK: - Add a new Items
