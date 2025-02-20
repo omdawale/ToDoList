@@ -1,7 +1,7 @@
 import UIKit
 import RealmSwift
 
-class TodoListViewController: UITableViewController{
+class TodoListViewController: SwipeTableViewController{
     
     @IBOutlet weak var searchBar: UISearchBar!
     var todoItems: Results<Item>?
@@ -16,7 +16,6 @@ class TodoListViewController: UITableViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
-
         /// *** Removing cause add selectedCategory
         loadItems()
     }
@@ -29,7 +28,8 @@ class TodoListViewController: UITableViewController{
     //MARK: - Show an list or List of Array items on the table view.
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        //tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
         if let item = todoItems?[indexPath.row]{
             cell.textLabel?.text = item.Title
@@ -39,7 +39,7 @@ class TodoListViewController: UITableViewController{
         }
         return cell
     }
-    
+
     //MARK: - Select a row and mark as check tick mark
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
@@ -76,7 +76,7 @@ class TodoListViewController: UITableViewController{
         }
         
         let action = UIAlertAction(title: "Add New Item in List", style: .default) { (action) in
-           
+            
             /// **C in CRUD in Realm
             if let currentCategory = self.selectedCategory{
                 do {
@@ -104,19 +104,33 @@ class TodoListViewController: UITableViewController{
         todoItems = selectedCategory?.items.sorted(byKeyPath: "Title", ascending: true)
         self.tableView.reloadData()
     }
+    
+    //MARK: - Delete Data from Swipe
+    override func updateModel(at indexPath: IndexPath) {
+        if let itemForDeletion = self.todoItems?[indexPath.row]{
+            //print(item.done)
+            do{
+                try self.realm.write(){
+                    /// ** CURD - D Operation in Realm
+                    self.realm.delete(itemForDeletion)
+                }
+            } catch {
+                print("Error saving data: \(error)")
+            }
+        }
+    }
 }
 
 // MARK: - Extension of TodoListController.
 
 extension TodoListViewController: UISearchBarDelegate {
-   
     /// ** Using a delegate method for finding a when search bar search button is pressed.
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         /// ** Query in Realm -- Take a List Item and  filter them.
         todoItems = todoItems?.filter("Title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true )
         self.tableView.reloadData()
     }
- 
+    
     /// ** Below delegate method is triggerred whenever the user type in search bar and show the result
     /// if user has cleared the search bar then it will again back to original view.
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
