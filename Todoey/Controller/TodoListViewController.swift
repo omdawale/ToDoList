@@ -21,6 +21,22 @@ class TodoListViewController: SwipeTableViewController{
         loadItems()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        
+        title = selectedCategory?.name
+        
+        if let colorHex = selectedCategory?.color {
+            title = selectedCategory?.name
+            guard let navBar = navigationController?.navigationBar else { fatalError("Navigation Controller does not exits") }
+            
+            if let navBarColor = UIColor(hexString: colorHex){
+                navBar.barTintColor = navBarColor
+                //navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+                searchBar.barTintColor = navBarColor
+            }
+        }
+    }
+    
     //MARK: - Count a number of items in the list or List of Araay
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return todoItems?.count ?? 1
@@ -39,8 +55,12 @@ class TodoListViewController: SwipeTableViewController{
             cell.textLabel?.text = "No items to show"
         }
         
-        // Use ChameleonFramework for the UI Colours
-        cell.backgroundColor = UIColor(hexString: todoItems?[indexPath.row].color ?? "FFDFEF")
+        ///** Use ChameleonFramework for the UI Colours
+        ///  Gradient Colour & Contrast Text
+        if let colour = UIColor(hexString: selectedCategory!.color)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(todoItems!.count)){
+            cell.backgroundColor = colour
+            cell.textLabel?.textColor = ContrastColorOf(colour, returnFlat: true)
+        }
         
         return cell
     }
@@ -89,7 +109,7 @@ class TodoListViewController: SwipeTableViewController{
                         let newItem = Item()
                         newItem.Title = textFieldTo.text!
                         newItem.dateCreated = Date()
-                        newItem.color = RandomFlatColor().hexValue()
+                        //newItem.color = RandomFlatColor().hexValue()
                         currentCategory.items.append(newItem)
                     }
                 } catch {
