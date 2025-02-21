@@ -1,5 +1,6 @@
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: SwipeTableViewController {
     ///** Iniitialzating Realm in Controller
@@ -9,6 +10,7 @@ class CategoryViewController: SwipeTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         loadItems()
+        //tableView.separatorStyle = .none
     }
     
     //MARK: - TableView Datasource method
@@ -22,11 +24,13 @@ class CategoryViewController: SwipeTableViewController {
         /// Intializing from SwipeTableViewController. We do method overriding
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = itemCategory?[indexPath.row].name ?? "No Categories Added Yet"
+        
+        /// Use ChameleonFramework for the UI Colours
+        cell.backgroundColor = UIColor(hexString: itemCategory?[indexPath.row].color ?? "FFDFEF")
         return cell
     }
     
     //MARK: - TableView Delegate method
-    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToItems", sender: self)
     }
@@ -56,6 +60,7 @@ class CategoryViewController: SwipeTableViewController {
             ///** CURD -- C -- Create Operations in Realm, Realm we dont need to append its simply autoupdate/append.(Result<Category>!)
             let newCategory = Category()
             newCategory.name = textFieldTo.text!
+            newCategory.color = RandomFlatColor().hexValue()
             self.saveItems(category: newCategory)
         }
         
@@ -82,7 +87,7 @@ class CategoryViewController: SwipeTableViewController {
         self.tableView.reloadData()
     }
     
-//MARK: - Delete Data from Swipe
+    //MARK: - Delete Data from Swipe
     override func updateModel(at indexPath: IndexPath) {
         if let categoryForDeletion = self.itemCategory?[indexPath.row]{
             //print(item.done)
